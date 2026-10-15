@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  TasmaT · plantilla premium de All Pixels (allpixels.dev)
+  Tres páginas: portada (index.html), producto en 3D (producto.html) y pago con factura (pago.html).
+  HTML semántico sin clases ni divs; todo el CSS va en <style>. La bolsa vive en js/tienda.js.
+-->
+<title>Libre — TasmaT</title>
+<meta name="description" content="Descubre cada producto TasmaT en 3D: gíralo, lee su ficha y añádelo a tu bolsa.">
+<style>
+  /* ============ 1. PALETA (paleta 4 · Apple Modern) ============ */
+  :root {
+    --fondo: #F5F5F7;        /* 1 · fondo */
+    --negro: #1D1D1F;        /* 2 · texto principal y bloques oscuros */
+    --gris: #AAAAAA;         /* 3 · líneas, iconos y detalles */
+    --azul: #007AFF;         /* 4 · acento: brillos, aros y detalles grandes */
+    --azul-boton: #0071E3;   /* el mismo azul, un punto más hondo, para botones con texto blanco (AA) */
+    --azul-texto: #0066CC;   /* azul para textos pequeños sobre fondo claro (AA) */
+    --blanco: #FFFFFF;
+    --texto: #515154;        /* texto de párrafo */
+    --suave: #6E6E73;        /* texto secundario y segunda parte de los títulos */
+    --azul-claro: #EAF2FE;
+    --gris-claro: #ECECEF;
+    --linea: rgba(29, 29, 31, .1);
+    --sombra: 0 30px 60px -30px rgba(29, 29, 31, .28);
+    --sombra-suave: 0 14px 34px -16px rgba(29, 29, 31, .2);
+    --sans: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --logo: "Bodoni Moda", "Didot", Georgia, serif;
+    --curva: cubic-bezier(.2, .7, .2, 1);
+  }
+
+  /* ============ 2. BASE ============ */
+  a {
+    text-decoration: none;
+    color: var(--negro);
+    transition: color .3s ease, background .3s ease, transform .3s ease;
+  }
+  a:hover { color: var(--azul-texto); }
+
+  /* Fuentes en local (Inter y Bodoni Moda, licencia OFL en fonts/) */
+  @font-face { font-family: "Inter"; src: url("fonts/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Inter"; src: url("fonts/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: "Inter"; src: url("fonts/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+  @font-face { font-family: "Bodoni Moda"; src: url("fonts/bodoni-moda-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
+  body {
+    font-family: var(--sans);
+    font-size: 1rem;
+    color: var(--texto);
+    background: var(--fondo);
+    line-height: 1.6;
+    letter-spacing: -.01em;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  [hidden] { display: none !important; }
+  ul, ol { list-style: none; }
+  figure { position: relative; overflow: hidden; }
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  h1, h2, h3 { font-weight: 600; color: var(--negro); line-height: 1.06; letter-spacing: -.035em; }
+  h1 em, h2 em, h3 em { font-style: normal; color: var(--suave); }
+  h2 { font-size: clamp(2.2rem, 4.2vw, 3.6rem); }
+  h3 { font-size: 1.5rem; }
+  button, input, select { font: inherit; color: inherit; letter-spacing: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 2px solid var(--azul); outline-offset: 3px; }
+
+  /* Etiqueta en píldora encima de cada título de sección */
+  main > section > header > p:first-of-type {
+    display: inline-block;
+    padding: .38rem 1rem;
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--negro);
+    background: var(--blanco);
+    border: 1px solid var(--linea);
+    border-radius: 40px;
+    margin-bottom: 1.3rem;
+  }
+
+  main > section { position: relative; padding: 7.5rem 6vw; }
+  main > section > header { max-width: 660px; margin-bottom: 3.6rem; }
+  main > section > header > p:nth-of-type(2) { margin-top: 1.2rem; max-width: 540px; color: var(--suave); }
+
+  /* ============ 3. CABECERA ============ */
+  body > header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 2rem;
+    padding: .9rem 4vw;
+    background: rgba(255, 255, 255, .86);
+    backdrop-filter: blur(18px) saturate(1.4);
+    border-bottom: 1px solid var(--linea);
+    transition: box-shadow .4s ease;
+  }
+  body > header[data-scroll] { box-shadow: 0 10px 30px -20px rgba(29, 29, 31, .35); }
+
+  /* Logotipo: icono azul con la T + nombre */
+  body > header > a:first-of-type {
+    display: inline-flex;
+    align-items: center;
+    gap: .7rem;
+    width: fit-content;
+    font-family: var(--logo);
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+  body > header > a:first-of-type::before {
+    content: "T";
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: var(--azul);
+    color: var(--blanco);
+    font-size: 1.25rem;
+    box-shadow: 0 8px 18px -8px rgba(0, 122, 255, .9);
+  }
+
+  body > header nav ul { display: flex; gap: .3rem; }
+  body > header nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .55rem 1.05rem;
+    font-size: .9rem;
+    font-weight: 500;
+    border-radius: 40px;
+    color: var(--texto);
+  }
+  body > header nav a:hover { background: var(--fondo); color: var(--negro); }
+  body > header nav a[aria-current] { background: var(--azul-boton); color: var(--blanco); }
+  body > header nav a[aria-current]::after {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Botón de la bolsa */
+  body > header > button:first-of-type {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .62rem .7rem .62rem 1.3rem;
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--blanco);
+    background: var(--azul-boton);
+    border-radius: 40px;
+    box-shadow: 0 12px 24px -12px rgba(0, 122, 255, .9);
+    transition: background .3s ease, transform .3s ease;
+  }
+  body > header > button:first-of-type:hover { background: var(--negro); }
+  body > header > button:first-of-type output {
+    display: grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 20px;
+    background: var(--blanco);
+    color: var(--azul-texto);
+    font-size: .75rem;
+    font-weight: 600;
+  }
+  body > header > button:first-of-type output[data-nuevo] { animation: latido .5s var(--curva); }
+
+  /* Botón del menú hamburguesa (solo en móvil): tres rayas que se convierten en una X */
+  body > header > button:last-of-type {
+    display: none;
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--linea);
+    background: linear-gradient(var(--negro), var(--negro)) center / 12px 2px no-repeat, var(--blanco);
+    transition: background-size .3s ease, background-color .3s ease;
+  }
+  body > header > button:last-of-type::before,
+  body > header > button:last-of-type::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 2px;
+    margin: -1px 0 0 -9px;
+    border-radius: 2px;
+    background: var(--negro);
+    transition: transform .45s var(--curva);
+  }
+  body > header > button:last-of-type::before { transform: translateY(-6px); }
+  body > header > button:last-of-type::after { transform: translateY(6px); }
+  body > header > button:last-of-type[aria-expanded="true"] { background-size: 0 2px, auto; }
+  body > header > button:last-of-type[aria-expanded="true"]::before { transform: rotate(45deg); }
+  body > header > button:last-of-type[aria-expanded="true"]::after { transform: rotate(-45deg); }
+
+  /* Velo detrás del menú abierto: tocarlo cierra el menú */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(29, 29, 31, .28);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .35s ease, visibility 0s .35s;
+  }
+  body:has(> header[data-menu])::after { opacity: 1; visibility: visible; transition: opacity .35s ease; }
+
+  /* ============ 4. PANEL DE LA BOLSA ============ */
+  body > dialog {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(440px, 100%);
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: var(--fondo);
+    color: var(--texto);
+    box-shadow: -30px 0 60px -30px rgba(29, 29, 31, .35);
+  }
+  body > dialog[open] { display: flex; flex-direction: column; animation: entrar-panel .55s var(--curva); }
+  body > dialog::backdrop { background: rgba(29, 29, 31, .32); backdrop-filter: blur(4px); animation: aparecer .4s ease; }
+
+  body > dialog > header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 1.6rem 1.2rem; }
+  body > dialog > header h2 { display: flex; align-items: center; gap: .6rem; font-size: 1.7rem; }
+  body > dialog > header output {
+    display: grid;
+    place-items: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 20px;
+    background: var(--azul-boton);
+    color: var(--blanco);
+    font-size: .8rem;
+    letter-spacing: 0;
+  }
+  body > dialog > header button {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--blanco);
+    color: var(--negro);
+    font-size: 1rem;
+    transition: background .3s ease, color .3s ease, transform .3s ease;
+  }
+  body > dialog > header button:hover { background: var(--negro); color: var(--blanco); transform: rotate(90deg); }
+
+  /* Líneas de la factura: foto, nombre, importe, cantidad y eliminar */
+  body > dialog > ul { flex: 1; display: grid; align-content: start; gap: .7rem; padding: 0 1.2rem 1rem; overflow-y: auto; }
+  body > dialog li {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr) auto;
+    grid-template-areas: "foto nombre importe" "foto cantidad quitar";
+    align-items: center;
+    column-gap: 1rem;
+    row-gap: .45rem;
+    padding: .75rem .9rem .75rem .75rem;
+    border-radius: 22px;
+    background: var(--blanco);
+    animation: subir .5s var(--curva) both;
+  }
+  body > dialog li > figure { grid-area: foto; height: 86px; border-radius: 16px; background: var(--fondo); }
+  body > dialog li img { object-fit: contain; padding: .4rem; }
+  body > dialog li > p:first-of-type { grid-area: nombre; display: grid; line-height: 1.3; }
+  body > dialog li strong { font-weight: 600; color: var(--negro); }
+  body > dialog li small { font-size: .78rem; color: var(--suave); }
+  body > dialog li > data { grid-area: importe; align-self: start; padding-top: .1rem; font-weight: 600; color: var(--negro); }
+  body > dialog li > p:last-of-type {
+    grid-area: cantidad;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    padding: 2px;
+    border: 1px solid var(--linea);
+    border-radius: 30px;
+  }
+  body > dialog li > p:last-of-type button { width: 30px; height: 30px; border-radius: 50%; color: var(--negro); transition: background .3s ease; }
+  body > dialog li > p:last-of-type button:hover { background: var(--fondo); }
+  body > dialog li output { min-width: 1.8rem; text-align: center; font-size: .9rem; font-weight: 600; color: var(--negro); }
+  body > dialog li > button { grid-area: quitar; justify-self: end; font-size: .78rem; color: var(--suave); transition: color .3s ease; }
+  body > dialog li > button:hover { color: var(--negro); }
+
+  /* Bolsa vacía */
+  body > dialog > p {
+    flex: 1;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 1.2rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--suave);
+  }
+  body > dialog > p::before {
+    content: "0";
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--blanco);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--gris);
+  }
+  body > dialog > p a {
+    padding: .8rem 1.4rem;
+    border-radius: 40px;
+    background: var(--negro);
+    color: var(--blanco);
+    font-weight: 500;
+  }
+  body > dialog > p a:hover { background: var(--azul-boton); color: var(--blanco); }
+
+  /* Resumen: envío gratis, totales y botón de pagar */
+  body > dialog > footer {
+    display: grid;
+    gap: .9rem;
+    padding: 1.3rem 1.6rem 1.6rem;
+    background: var(--blanco);
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -20px 40px -30px rgba(29, 29, 31, .35);
+  }
+  body > dialog > footer > p:first-of-type { display: grid; gap: .5rem; font-size: .82rem; font-weight: 500; color: var(--negro); }
+  body > dialog progress {
+    width: 100%;
+    height: 6px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--gris-claro);
+    overflow: hidden;
+    appearance: none;
+  }
+  body > dialog progress::-webkit-progress-bar { background: var(--gris-claro); }
+  body > dialog progress::-webkit-progress-value { background: var(--azul); border-radius: 6px; transition: width .5s var(--curva); }
+  body > dialog progress::-moz-progress-bar { background: var(--azul); border-radius: 6px; }
+  body > dialog dl { display: grid; grid-template-columns: 1fr auto; row-gap: .35rem; font-size: .92rem; }
+  body > dialog dd { text-align: right; color: var(--negro); font-weight: 500; }
+  body > dialog dt:last-of-type,
+  body > dialog dd:last-of-type { margin-top: .5rem; padding-top: .8rem; border-top: 1px solid var(--linea); font-size: 1.25rem; font-weight: 600; color: var(--negro); letter-spacing: -.02em; }
+  body > dialog > footer > small { font-size: .76rem; color: var(--suave); }
+  body > dialog > footer > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    padding: 1.05rem 1.4rem;
+    border-radius: 60px;
+    background: var(--azul-boton);
+    color: var(--blanco);
+    font-weight: 600;
+    box-shadow: 0 16px 30px -14px rgba(0, 122, 255, .85);
+    transition: background .35s ease, transform .35s ease;
+  }
+  body > dialog > footer > a::after { content: "\2192"; transition: transform .35s ease; }
+  body > dialog > footer > a:hover { background: var(--negro); color: var(--blanco); transform: translateY(-2px); }
+  body > dialog > footer > a:hover::after { transform: translateX(4px); }
+  body > dialog > footer > button { padding: .4rem; font-size: .86rem; font-weight: 500; color: var(--texto); }
+  body > dialog > footer > button:hover { color: var(--negro); }
+
+  /* ============ 5. AVISO «AÑADIDO A LA BOLSA» ============ */
+  body > aside {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .9rem;
+    width: min(390px, calc(100% - 2rem));
+    padding: .7rem;
+    border-radius: 24px;
+    background: var(--negro);
+    box-shadow: var(--sombra);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(.97);
+    transition: opacity .35s ease, transform .5s var(--curva), visibility 0s .5s;
+  }
+  body > aside[data-visible] { opacity: 1; visibility: visible; transform: none; transition: opacity .35s ease, transform .5s var(--curva); }
+  body > aside figure { height: 56px; border-radius: 16px; background: var(--blanco); }
+  body > aside img { object-fit: contain; padding: .3rem; }
+  body > aside p { display: grid; font-size: .8rem; line-height: 1.35; color: rgba(255, 255, 255, .72); }
+  body > aside strong { font-size: .95rem; font-weight: 600; color: var(--blanco); }
+  body > aside button {
+    padding: .7rem 1.05rem;
+    border-radius: 40px;
+    background: var(--blanco);
+    color: var(--negro);
+    font-size: .84rem;
+    font-weight: 600;
+    transition: background .3s ease, color .3s ease;
+  }
+  body > aside button:hover { background: var(--azul-boton); color: var(--blanco); }
+
+  /* ============ 6. PIE ============ */
+  body > footer {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    gap: 3rem;
+    margin: 1rem 1.5rem 1.5rem;
+    padding: 4.5rem 5vw 2rem;
+    border-radius: 32px;
+    background: var(--blanco);
+  }
+  body > footer a { color: var(--texto); }
+  body > footer a:hover { color: var(--azul-texto); }
+  body > footer > section:first-of-type > a { font-family: var(--logo); font-size: 2.2rem; font-weight: 500; letter-spacing: 0; color: var(--negro); }
+  body > footer > section:first-of-type p { max-width: 300px; margin-top: .8rem; font-size: .94rem; color: var(--suave); }
+  body > footer h2 { font-size: .82rem; font-weight: 600; letter-spacing: 0; color: var(--negro); margin-bottom: 1.1rem; }
+  body > footer nav ul { display: grid; gap: .55rem; }
+  body > footer nav a { font-size: .94rem; }
+  body > footer > p {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 2rem;
+    border-top: 1px solid var(--linea);
+    font-size: .82rem;
+    color: var(--suave);
+  }
+
+  /* ============ 7. ANIMACIONES ============ */
+  @keyframes acercar { from { transform: scale(1.06); } to { transform: none; } }
+  @keyframes subir { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+  @keyframes latido { 50% { transform: scale(1.3); } }
+  @keyframes aparecer { from { opacity: 0; } }
+  @keyframes entrar-panel { from { transform: translateX(100%); } }
+
+  [data-revelar] { opacity: 0; transform: translateY(40px); transition: opacity 1s ease, transform 1s var(--curva); }
+  [data-revelar="visto"] { opacity: 1; transform: none; }
+  li:nth-of-type(3n+2)[data-revelar] { transition-delay: .1s; }
+  li:nth-of-type(3n)[data-revelar] { transition-delay: .2s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    [data-revelar] { opacity: 1; transform: none; }
+  }
+
+  /* ============ 8. CABECERA Y PIE EN PANTALLAS PEQUEÑAS ============ */
+  @media (max-width: 1180px) {
+    body > header { grid-template-columns: auto 1fr auto; }
+    body > header nav ul { justify-content: center; }
+    body > header nav a { padding: .5rem .8rem; }
+  }
+
+  /* Menú hamburguesa: el menú baja en una tarjeta flotante */
+  @media (max-width: 960px) {
+    body > header { grid-template-columns: 1fr auto auto; gap: .6rem; padding: .75rem 1.1rem; }
+    body > header > button:last-of-type { display: block; }
+    body > header nav {
+      position: absolute;
+      top: calc(100% + .6rem);
+      left: 1rem;
+      right: 1rem;
+      padding: .7rem;
+      border-radius: 28px;
+      background: var(--blanco);
+      border: 1px solid var(--linea);
+      box-shadow: var(--sombra);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-12px) scale(.98);
+      transform-origin: top right;
+      transition: opacity .3s ease, transform .45s var(--curva), visibility 0s .45s;
+    }
+    body > header[data-menu] nav { opacity: 1; visibility: visible; transform: none; transition: opacity .3s ease, transform .45s var(--curva); }
+    body > header nav ul { flex-direction: column; gap: .15rem; }
+    body > header nav a {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 1.2rem;
+      font-size: 1.15rem;
+      border-radius: 20px;
+      color: var(--negro);
+    }
+    body > header nav a::after { content: "\2192"; color: var(--gris); }
+    body > header nav a[aria-current]::after { width: 7px; height: 7px; }
+    body > header[data-menu] nav li { animation: subir .5s var(--curva) both; }
+    body > header[data-menu] nav li:nth-of-type(2) { animation-delay: .04s; }
+    body > header[data-menu] nav li:nth-of-type(3) { animation-delay: .08s; }
+    body > header[data-menu] nav li:nth-of-type(4) { animation-delay: .12s; }
+    body > header[data-menu] nav li:nth-of-type(5) { animation-delay: .16s; }
+
+    body > footer { grid-template-columns: 1fr 1fr; margin: 1rem; }
+    body > footer > section:first-of-type { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 560px) {
+    body > header > a:first-of-type { font-size: 1.3rem; gap: .55rem; }
+    body > header > a:first-of-type::before { width: 32px; height: 32px; font-size: 1.1rem; }
+    body > header > button:first-of-type { padding: .55rem .55rem .55rem 1rem; font-size: .84rem; }
+    body > dialog > header { padding: 1.2rem 1.2rem 1rem; }
+    body > dialog > ul { padding: 0 .8rem 1rem; }
+    body > dialog li { grid-template-columns: 64px minmax(0, 1fr) auto; column-gap: .8rem; }
+    body > dialog li > figure { height: 74px; }
+    body > dialog > footer { padding: 1.1rem 1.2rem 1.3rem; }
+    body > aside { right: 1rem; bottom: 1rem; }
+    body > footer { padding: 3.2rem 1.6rem 1.6rem; gap: 2.2rem; }
+    body > footer > p { flex-direction: column; gap: .6rem; }
+  }
+
+  /* ============ 1. PRODUCTO EN 3D ============ */
+  main > section:first-of-type {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+    grid-template-areas:
+      "escena migas"
+      "escena menu"
+      "escena ficha";
+    grid-template-rows: auto auto 1fr;
+    column-gap: 5vw;
+    align-items: start;
+    padding: 7.2rem 5vw 5rem;
+  }
+
+  /* Migas de pan */
+  main > section:first-of-type > nav:first-of-type { grid-area: migas; margin-bottom: 1.6rem; }
+  main > section:first-of-type > nav:first-of-type ol { display: flex; flex-wrap: wrap; gap: .45rem; font-size: .82rem; }
+  main > section:first-of-type > nav:first-of-type li { display: flex; align-items: center; gap: .45rem; color: var(--suave); }
+  main > section:first-of-type > nav:first-of-type li:nth-of-type(n+2)::before { content: "/"; color: var(--gris); }
+  main > section:first-of-type > nav:first-of-type a { color: var(--suave); }
+  main > section:first-of-type > nav:first-of-type a:hover { color: var(--azul-texto); }
+  main > section:first-of-type > nav:first-of-type a[aria-current] { color: var(--negro); font-weight: 500; }
+
+  /* Escenario del visor: se queda fijo mientras se lee la ficha */
+  main > section:first-of-type > figure {
+    grid-area: escena;
+    position: sticky;
+    top: 5.8rem;
+    height: min(calc(100vh - 7rem), 860px);
+    min-height: 560px;
+    border-radius: 32px;
+    background:
+      radial-gradient(ellipse 58% 13% at 50% 86%, rgba(170, 170, 170, .35), rgba(170, 170, 170, 0) 70%),
+      radial-gradient(circle at 50% 42%, var(--blanco) 0%, #F2F2F5 60%, #E9E9ED 100%);
+    isolation: isolate;
+  }
+  main > section:first-of-type > figure::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: min(78%, 520px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 122, 255, .22);
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+  main > section:first-of-type > figure::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: min(62%, 410px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--blanco), var(--azul-claro) 75%);
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+  main > section:first-of-type > figure canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: pan-y;
+    opacity: 0;
+    transition: opacity .8s ease;
+  }
+  main > section:first-of-type > figure[data-estado] canvas { opacity: 1; }
+  main > section:first-of-type > figure[data-estado="girando"] canvas { cursor: grabbing; }
+  main > section:first-of-type > figure img {
+    position: absolute;
+    left: 50%;
+    top: 12%;
+    width: auto;
+    height: 70%;
+    object-fit: contain;
+    transform: translateX(-50%);
+    transition: opacity .5s ease;
+  }
+  main > section:first-of-type > figure[data-estado] img { opacity: 0; }
+  main > section:first-of-type > figure figcaption {
+    position: absolute;
+    left: 50%;
+    bottom: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .5rem 1.2rem .5rem .55rem;
+    font-size: .84rem;
+    font-weight: 500;
+    color: var(--negro);
+    background: rgba(255, 255, 255, .8);
+    backdrop-filter: blur(10px);
+    border-radius: 40px;
+    box-shadow: var(--sombra-suave);
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+    transition: opacity .4s ease;
+  }
+  main > section:first-of-type > figure figcaption::before {
+    content: "\21BB";
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--azul-boton);
+    color: var(--blanco);
+    font-size: 1rem;
+  }
+  main > section:first-of-type > figure figcaption::after { content: "360\00B0"; color: var(--azul-texto); }
+  main > section:first-of-type > figure[data-estado="girando"] figcaption { opacity: .4; }
+
+  /* Selector de productos (miniaturas) */
+  main > section:first-of-type > nav:last-of-type {
+    grid-area: menu;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: 2.2rem;
+  }
+  main > section:first-of-type > nav:last-of-type ul { display: flex; flex: 1; min-width: 0; gap: .5rem; }
+  main > section:first-of-type > nav:last-of-type li { flex: 1; min-width: 0; }
+  main > section:first-of-type > nav:last-of-type li a {
+    display: block;
+    aspect-ratio: 4 / 5;
+    padding: .4rem;
+    border-radius: 16px;
+    background: var(--blanco);
+    outline: 1.5px solid transparent;
+    outline-offset: 3px;
+    transition: outline-color .3s ease, transform .3s var(--curva);
+  }
+  main > section:first-of-type > nav:last-of-type li a:hover { transform: translateY(-3px); }
+  main > section:first-of-type > nav:last-of-type li a[aria-current] { outline-color: var(--azul); }
+  main > section:first-of-type > nav:last-of-type li figure { height: 100%; }
+  main > section:first-of-type > nav:last-of-type li img { object-fit: contain; }
+  main > section:first-of-type > nav:last-of-type > button {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--linea);
+    background: var(--blanco);
+    font-size: 1rem;
+    color: var(--negro);
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  main > section:first-of-type > nav:last-of-type > button:hover { background: var(--azul-boton); color: var(--blanco); border-color: var(--azul-boton); }
+
+  /* Ficha del producto */
+  main > section:first-of-type > article { grid-area: ficha; }
+  main > section:first-of-type > article > p,
+  main > section:first-of-type > article > h1,
+  main > section:first-of-type > article > dl,
+  main > section:first-of-type > article > footer,
+  main > section:first-of-type > article > ul,
+  main > section:first-of-type > article > details { animation: subir .8s var(--curva) both; }
+  main > section:first-of-type > article > h1 { animation-delay: .05s; }
+  main > section:first-of-type > article > p:nth-of-type(2) { animation-delay: .1s; }
+  main > section:first-of-type > article > dl { animation-delay: .15s; }
+  main > section:first-of-type > article > footer { animation-delay: .2s; }
+  main > section:first-of-type > article > ul,
+  main > section:first-of-type > article > details { animation-delay: .25s; }
+  main > section:first-of-type > article > p:first-of-type {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--azul-texto);
+    border-bottom: 1px solid var(--linea);
+  }
+  main > section:first-of-type > article > p:first-of-type b { font-weight: 600; color: var(--negro); }
+  main > section:first-of-type article h1 { font-size: clamp(2.4rem, 3.6vw, 3.3rem); margin: 1.4rem 0 .9rem; }
+  main > section:first-of-type article h1 em { display: block; margin-top: .6rem; font-size: .44em; font-weight: 500; letter-spacing: -.01em; }
+  main > section:first-of-type > article > p:nth-of-type(2) { max-width: 470px; }
+  main > section:first-of-type article dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    grid-auto-flow: column;
+    margin: 1.7rem 0;
+    border-block: 1px solid var(--linea);
+  }
+  main > section:first-of-type article dt { padding-top: 1rem; font-size: .76rem; color: var(--suave); }
+  main > section:first-of-type article dd { padding: .2rem 1rem 1rem 0; font-weight: 500; color: var(--negro); line-height: 1.35; }
+  main > section:first-of-type article dt:nth-of-type(n+2),
+  main > section:first-of-type article dd:nth-of-type(n+2) { padding-left: 1rem; border-left: 1px solid var(--linea); }
+
+  /* Precio, cantidad y botón de añadir */
+  main > section:first-of-type article > footer { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem; }
+  main > section:first-of-type article > footer > data {
+    flex-basis: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: .9rem;
+    font-size: 2.6rem;
+    font-weight: 600;
+    letter-spacing: -.04em;
+    line-height: 1;
+    color: var(--negro);
+  }
+  main > section:first-of-type article > footer > data small { font-size: .8rem; font-weight: 400; letter-spacing: -.01em; color: var(--suave); }
+  main > section:first-of-type article > footer > p {
+    display: flex;
+    align-items: center;
+    padding: .3rem;
+    border-radius: 60px;
+    border: 1px solid var(--linea);
+    background: var(--blanco);
+  }
+  main > section:first-of-type article > footer > p button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 1.15rem;
+    color: var(--negro);
+    transition: background .3s ease;
+  }
+  main > section:first-of-type article > footer > p button:hover { background: var(--fondo); }
+  main > section:first-of-type article > footer output { min-width: 2.2rem; text-align: center; font-weight: 600; color: var(--negro); }
+  main > section:first-of-type article > footer > button {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    min-width: 210px;
+    padding: 1.05rem 1.4rem;
+    font-weight: 600;
+    color: var(--blanco);
+    background: var(--azul-boton);
+    border-radius: 60px;
+    box-shadow: 0 16px 30px -14px rgba(0, 122, 255, .85);
+    transition: background .35s ease, transform .35s ease;
+  }
+  main > section:first-of-type article > footer > button::after {
+    content: "+";
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    font-size: .9rem;
+    line-height: 1;
+  }
+  main > section:first-of-type article > footer > button:hover { background: var(--negro); transform: translateY(-2px); }
+  main > section:first-of-type article > footer > button[data-anadido] { background: var(--negro); }
+  main > section:first-of-type article > footer > button[data-anadido]::after { content: "\2713"; font-size: .75rem; }
+
+  /* Ventajas: envío, devolución y pago */
+  main > section:first-of-type article > ul {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+    margin: 1.6rem 0 1.4rem;
+  }
+  main > section:first-of-type article > ul li {
+    padding: .9rem 1rem;
+    border-radius: 18px;
+    background: var(--blanco);
+    font-size: .8rem;
+    line-height: 1.35;
+    color: var(--suave);
+  }
+  main > section:first-of-type article > ul strong { display: block; margin-bottom: .2rem; font-size: 1rem; font-weight: 600; letter-spacing: -.02em; color: var(--negro); }
+
+  /* Desplegables: uso, ingredientes y envío */
+  main > section:first-of-type article details { border-top: 1px solid var(--linea); }
+  main > section:first-of-type article details:last-of-type { border-bottom: 1px solid var(--linea); }
+  main > section:first-of-type article summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 0;
+    font-weight: 500;
+    color: var(--negro);
+    list-style: none;
+    cursor: pointer;
+  }
+  main > section:first-of-type article summary::-webkit-details-marker { display: none; }
+  main > section:first-of-type article summary::after {
+    content: "+";
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--blanco);
+    font-size: 1.1rem;
+    transition: transform .4s var(--curva), background .3s ease, color .3s ease;
+  }
+  main > section:first-of-type article summary:hover::after { background: var(--negro); color: var(--blanco); }
+  main > section:first-of-type article details[open] summary::after { transform: rotate(45deg); }
+  main > section:first-of-type article details p { max-width: 500px; padding-bottom: 1.3rem; font-size: .93rem; animation: subir .5s var(--curva) both; }
+
+  /* ============ 2. COMPLETA TU RUTINA (mismas tarjetas que la estantería) ============ */
+  main > section:nth-of-type(2) { padding-top: 3rem; }
+  /* ============ ESTANTERÍA: tarjetas de producto (sección 2) ============ */
+  main > section:nth-of-type(2) > header { max-width: 820px; margin-inline: auto; text-align: center; }
+  main > section:nth-of-type(2) > header > p:nth-of-type(2) { margin-inline: auto; }
+  main > section:nth-of-type(2) ol {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.3rem;
+    max-width: 1160px;
+    margin-inline: auto;
+    counter-reset: producto;
+  }
+  main > section:nth-of-type(2) li {
+    counter-increment: producto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 470px;
+    padding: 1.8rem 1.8rem 0;
+    border-radius: 28px;
+    background: var(--blanco);
+    overflow: hidden;
+    transition: opacity 1s ease, transform .5s var(--curva), box-shadow .5s ease;
+  }
+  main > section:nth-of-type(2) li:nth-of-type(3n+2) { background: var(--azul-claro); }
+  main > section:nth-of-type(2) li:nth-of-type(3n) { background: var(--gris-claro); }
+  main > section:nth-of-type(2) li:hover { transform: translateY(-6px); box-shadow: var(--sombra); }
+  main > section:nth-of-type(2) li::before {
+    content: "0" counter(producto);
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--azul-texto);
+  }
+  /* Píldora «Ver en 360°» arriba a la derecha */
+  main > section:nth-of-type(2) li::after {
+    content: "Ver en 360\00B0";
+    position: absolute;
+    top: 1.45rem;
+    right: 1.45rem;
+    padding: .3rem .8rem;
+    font-size: .74rem;
+    font-weight: 500;
+    color: var(--negro);
+    background: rgba(255, 255, 255, .85);
+    border: 1px solid var(--linea);
+    border-radius: 30px;
+    transition: background .35s ease, color .35s ease, border-color .35s ease;
+  }
+  main > section:nth-of-type(2) li:hover::after { background: var(--azul-boton); border-color: var(--azul-boton); color: var(--blanco); }
+  main > section:nth-of-type(2) li h3 { font-size: 1.7rem; margin: .6rem 0 .5rem; }
+  /* El enlace del nombre ocupa toda la tarjeta y lleva a la página del producto */
+  main > section:nth-of-type(2) li h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+  main > section:nth-of-type(2) li > p:first-of-type { font-size: .9rem; line-height: 1.5; max-width: 270px; }
+  main > section:nth-of-type(2) li small {
+    display: inline-block;
+    width: fit-content;
+    margin-top: 1rem;
+    padding: .3rem .85rem;
+    font-size: .76rem;
+    font-weight: 500;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, .8);
+    color: var(--negro);
+  }
+  main > section:nth-of-type(2) li:nth-of-type(3n+1) small { background: var(--fondo); }
+  main > section:nth-of-type(2) li figure {
+    flex: 1;
+    min-height: 210px;
+    margin-top: 1.2rem;
+    overflow: visible;
+  }
+  main > section:nth-of-type(2) li figure::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -70px;
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .7);
+    transform: translateX(-50%);
+  }
+  main > section:nth-of-type(2) li:nth-of-type(3n+1) figure::before { background: var(--fondo); }
+  main > section:nth-of-type(2) li img {
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    width: auto;
+    height: 90%;
+    max-width: 70%;
+    object-fit: contain;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 24px 20px rgba(29, 29, 31, .16));
+    transition: transform .7s var(--curva);
+  }
+  main > section:nth-of-type(2) li:hover img { transform: translateX(-50%) translateY(-10px) rotate(-3deg); }
+
+  /* Precio y botón de añadir sobre la foto */
+  main > section:nth-of-type(2) li > p:last-of-type {
+    position: absolute;
+    left: 1.1rem;
+    right: 1.1rem;
+    bottom: 1.1rem;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  main > section:nth-of-type(2) li data {
+    padding: .5rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--negro);
+    background: rgba(255, 255, 255, .85);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    box-shadow: var(--sombra-suave);
+  }
+  main > section:nth-of-type(2) li button {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--azul-boton);
+    color: var(--blanco);
+    font-size: 1.4rem;
+    line-height: 1;
+    box-shadow: 0 12px 24px -10px rgba(0, 122, 255, .9);
+    transition: background .3s ease, transform .3s var(--curva);
+  }
+  main > section:nth-of-type(2) li button:hover { background: var(--negro); transform: scale(1.08); }
+  /* Al añadir: fondo negro y una marca de verificación en lugar del + */
+  main > section:nth-of-type(2) li button[data-anadido] { background: var(--negro); font-size: 0; }
+  main > section:nth-of-type(2) li button[data-anadido]::after { content: "\2713"; font-size: 1.05rem; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 960px) {
+    main > section { padding: 5rem 6vw; }
+    main > section:first-of-type {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "migas" "escena" "menu" "ficha";
+      grid-template-rows: auto;
+      padding: 6.4rem 5vw 3.5rem;
+    }
+    main > section:first-of-type > figure { position: relative; top: auto; height: min(112vw, 600px); min-height: 0; }
+    main > section:first-of-type > nav:last-of-type { margin: 1.2rem 0 2rem; }
+
+    /* Sugerencias en fila deslizable */
+    main > section:nth-of-type(2) ol {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(270px, 46%);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 1rem;
+    }
+    main > section:nth-of-type(2) li { scroll-snap-align: start; }
+  }
+
+  @media (max-width: 560px) {
+    main > section:first-of-type > nav:last-of-type > button { display: none; }
+    main > section:first-of-type > nav:last-of-type ul { gap: .4rem; }
+    main > section:first-of-type > nav:last-of-type li a { padding: .25rem; border-radius: 12px; }
+    main > section:first-of-type article dl { grid-template-columns: auto 1fr; grid-template-rows: none; grid-auto-flow: row; column-gap: 1.2rem; }
+    main > section:first-of-type article dt,
+    main > section:first-of-type article dd { padding: .8rem 0; border-left: 0; }
+    main > section:first-of-type article dt:nth-of-type(n+2),
+    main > section:first-of-type article dd:nth-of-type(n+2) { padding-left: 0; border-left: 0; border-top: 1px solid var(--linea); }
+    main > section:first-of-type article > footer > data { font-size: 2.2rem; flex-wrap: wrap; gap: .5rem; }
+    main > section:first-of-type article > footer > button { min-width: 0; }
+    main > section:first-of-type article > ul li { padding: .8rem .7rem; font-size: .74rem; }
+    main > section:nth-of-type(2) ol { grid-auto-columns: 84%; }
+    main > section:nth-of-type(2) li { min-height: 430px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" aria-label="TasmaT, inicio">TasmaT</a>
+  <nav aria-label="Principal" id="menu">
+    <ul>
+      <li><a href="index.html#inicio">Inicio</a></li>
+      <li><a href="index.html#estanteria">Estantería</a></li>
+      <li><a href="producto.html" aria-current="page">Producto 3D</a></li>
+      <li><a href="index.html#ingredientes">Ingredientes</a></li>
+      <li><a href="index.html#club">Club</a></li>
+    </ul>
+  </nav>
+  <button type="button" aria-label="Mi bolsa 0 productos" aria-haspopup="dialog">Mi bolsa <output>0</output></button>
+  <button type="button" aria-label="Abrir el menú" aria-controls="menu" aria-expanded="false"></button>
+</header>
+
+<main>
+
+  <!-- 1. PRODUCTO EN 3D -->
+  <section id="producto">
+    <nav aria-label="Migas de pan">
+      <ol>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="index.html#estanteria">Estantería</a></li>
+        <li><a href="producto.html?p=libre" aria-current="page">Libre</a></li>
+      </ol>
+    </nav>
+
+    <figure>
+      <canvas aria-label="Producto en 3D. Arrastra para girarlo"></canvas>
+      <img src="img/libre.webp" alt="Libre, crema corporal TasmaT">
+      <figcaption>Arrastra para girar</figcaption>
+    </figure>
+
+    <nav aria-label="Elegir producto">
+      <button type="button" aria-label="Producto anterior">&larr;</button>
+      <ul>
+        <li><a href="producto.html?p=libre" aria-current="true" aria-label="Libre"><figure><img src="img/libre.webp" alt=""></figure></a></li>
+        <li><a href="producto.html?p=retinol" aria-label="Retinol 0.50"><figure><img src="img/retinol.webp" alt=""></figure></a></li>
+        <li><a href="producto.html?p=iluminadora" aria-label="Crema iluminadora"><figure><img src="img/iluminadora.webp" alt=""></figure></a></li>
+        <li><a href="producto.html?p=azufre" aria-label="Crema de azufre"><figure><img src="img/azufre.webp" alt=""></figure></a></li>
+        <li><a href="producto.html?p=espuma" aria-label="Espuma limpiadora"><figure><img src="img/espuma.webp" alt=""></figure></a></li>
+        <li><a href="producto.html?p=hidratante" aria-label="Crema hidratante"><figure><img src="img/hidratante.webp" alt=""></figure></a></li>
+      </ul>
+      <button type="button" aria-label="Producto siguiente">&rarr;</button>
+    </nav>
+
+    <article id="libre">
+      <p><b>01 / 06</b> Cuerpo</p>
+      <h1>Libre <em>Crema corporal intensa</em></h1>
+      <p>Hidratación profunda para pieles secas. Se absorbe al momento y deja la piel suave y elástica todo el día.</p>
+      <dl>
+        <dt>Activos</dt><dd>Hialurónico, urea y coco</dd>
+        <dt>Piel</dt><dd>Seca y muy seca</dd>
+        <dt>Formato</dt><dd>250 ml</dd>
+      </dl>
+      <footer>
+        <data value="29">29 €<small>IVA incluido · Envío gratis desde 35 €</small></data>
+        <p role="group" aria-label="Cantidad">
+          <button type="button" data-paso="-1" aria-label="Una unidad menos">&minus;</button>
+          <output>1</output>
+          <button type="button" data-paso="1" aria-label="Una unidad más">+</button>
+        </p>
+        <button type="button" data-anadir="libre">Añadir a la bolsa</button>
+      </footer>
+      <ul aria-label="Ventajas">
+        <li><strong>24/48 h</strong>Envío rápido</li>
+        <li><strong>30 días</strong>Devolución gratis</li>
+        <li><strong>Seguro</strong>Pago cifrado</li>
+      </ul>
+      <details open>
+        <summary>Cómo se usa</summary>
+        <p>Aplícala después de la ducha, con la piel aún húmeda, con un masaje circular hasta que se absorba. Úsala mañana y noche en las zonas más secas.</p>
+      </details>
+      <details>
+        <summary>Ingredientes clave</summary>
+        <p>Ácido hialurónico (2 %), urea (5 %), aceite de coco ecológico, manteca de karité y glicerina vegetal. Sin parabenos ni siliconas.</p>
+      </details>
+      <details>
+        <summary>Envío y devoluciones</summary>
+        <p>Envío en 24–48 h laborables, gratis a partir de 35 €. Si no te convence, tienes 30 días para devolverlo sin coste.</p>
+      </details>
+    </article>
+
+    <article id="retinol" hidden>
+      <p><b>02 / 06</b> Rostro · Noche</p>
+      <h1>Retinol 0.50 <em>Crema antiarrugas regeneradora</em></h1>
+      <p>Alisa las líneas de expresión y renueva la textura de la piel mientras duermes, con retinol estabilizado y vitamina C.</p>
+      <dl>
+        <dt>Activos</dt><dd>Retinol y vitamina C</dd>
+        <dt>Piel</dt><dd>Todo tipo de piel</dd>
+        <dt>Formato</dt><dd>30 ml</dd>
+      </dl>
+      <footer>
+        <data value="39">39 €<small>IVA incluido · Envío gratis desde 35 €</small></data>
+        <p role="group" aria-label="Cantidad">
+          <button type="button" data-paso="-1" aria-label="Una unidad menos">&minus;</button>
+          <output>1</output>
+          <button type="button" data-paso="1" aria-label="Una unidad más">+</button>
+        </p>
+        <button type="button" data-anadir="retinol">Añadir a la bolsa</button>
+      </footer>
+      <ul aria-label="Ventajas">
+        <li><strong>24/48 h</strong>Envío rápido</li>
+        <li><strong>30 días</strong>Devolución gratis</li>
+        <li><strong>Seguro</strong>Pago cifrado</li>
+      </ul>
+      <details open>
+        <summary>Cómo se usa</summary>
+        <p>Por la noche, sobre la piel limpia y seca, aplica una cantidad del tamaño de un guisante. Empieza en noches alternas y usa protector solar por el día.</p>
+      </details>
+      <details>
+        <summary>Ingredientes clave</summary>
+        <p>Retinol encapsulado (0,5 %), vitamina C estable, niacinamida, escualano vegetal y pantenol.</p>
+      </details>
+      <details>
+        <summary>Envío y devoluciones</summary>
+        <p>Envío en 24–48 h laborables, gratis a partir de 35 €. Si no te convence, tienes 30 días para devolverlo sin coste.</p>
+      </details>
+    </article>
+
+    <article id="iluminadora" hidden>
+      <p><b>03 / 06</b> Rostro · Día</p>
+      <h1>Crema iluminadora <em>Unifica el tono</em></h1>
+      <p>Aporta luz y unifica el tono desde la primera semana. Una textura cremosa que se funde en la piel y la deja luminosa, nunca grasa.</p>
+      <dl>
+        <dt>Activos</dt><dd>Extractos vegetales y karité</dd>
+        <dt>Piel</dt><dd>Apagada o con manchas</dd>
+        <dt>Formato</dt><dd>100 ml</dd>
+      </dl>
+      <footer>
+        <data value="32">32 €<small>IVA incluido · Envío gratis desde 35 €</small></data>
+        <p role="group" aria-label="Cantidad">
+          <button type="button" data-paso="-1" aria-label="Una unidad menos">&minus;</button>
+          <output>1</output>
+          <button type="button" data-paso="1" aria-label="Una unidad más">+</button>
+        </p>
+        <button type="button" data-anadir="iluminadora">Añadir a la bolsa</button>
+      </footer>
+      <ul aria-label="Ventajas">
+        <li><strong>24/48 h</strong>Envío rápido</li>
+        <li><strong>30 días</strong>Devolución gratis</li>
+        <li><strong>Seguro</strong>Pago cifrado</li>
+      </ul>
+      <details open>
+        <summary>Cómo se usa</summary>
+        <p>Por la mañana, sobre la piel limpia, extiende una pequeña cantidad por el rostro y el cuello. Puedes usarla sola o debajo del maquillaje.</p>
+      </details>
+      <details>
+        <summary>Ingredientes clave</summary>
+        <p>Extracto de regaliz, vitamina C, manteca de karité, aloe vera y aceite de jojoba.</p>
+      </details>
+      <details>
+        <summary>Envío y devoluciones</summary>
+        <p>Envío en 24–48 h laborables, gratis a partir de 35 €. Si no te convence, tienes 30 días para devolverlo sin coste.</p>
+      </details>
+    </article>
+
+    <article id="azufre" hidden>
+      <p><b>04 / 06</b> Rostro · Noche</p>
+      <h1>Crema de azufre <em>Tratamiento purificante</em></h1>
+      <p>Equilibra la grasa y calma las imperfecciones mientras duermes. Su dosificador sin aire protege la fórmula de la luz y del oxígeno.</p>
+      <dl>
+        <dt>Activos</dt><dd>Azufre y óxido de zinc</dd>
+        <dt>Piel</dt><dd>Mixta y grasa</dd>
+        <dt>Formato</dt><dd>30 ml</dd>
+      </dl>
+      <footer>
+        <data value="26">26 €<small>IVA incluido · Envío gratis desde 35 €</small></data>
+        <p role="group" aria-label="Cantidad">
+          <button type="button" data-paso="-1" aria-label="Una unidad menos">&minus;</button>
+          <output>1</output>
+          <button type="button" data-paso="1" aria-label="Una unidad más">+</button>
+        </p>
+        <button type="button" data-anadir="azufre">Añadir a la bolsa</button>
+      </footer>
+      <ul aria-label="Ventajas">
+        <li><strong>24/48 h</strong>Envío rápido</li>
+        <li><strong>30 días</strong>Devolución gratis</li>
+        <li><strong>Seguro</strong>Pago cifrado</li>
+      </ul>
+      <details open>
+        <summary>Cómo se usa</summary>
+        <p>Por la noche, aplica una o dos dosis sobre la piel limpia, en las zonas con más brillo o imperfecciones. Evita el contorno de los ojos.</p>
+      </details>
+      <details>
+        <summary>Ingredientes clave</summary>
+        <p>Azufre (3 %), óxido de zinc, niacinamida, extracto de árbol del té y pantenol.</p>
+      </details>
+      <details>
+        <summary>Envío y devoluciones</summary>
+        <p>Envío en 24–48 h laborables, gratis a partir de 35 €. Si no te convence, tienes 30 días para devolverlo sin coste.</p>
+      </details>
+    </article>
+
+    <article id="espuma" hidden>
+      <p><b>05 / 06</b> Rostro · Limpieza</p>
+      <h1>Espuma limpiadora <em>Crema espumosa sin jabón</em></h1>
+      <p>Limpia en profundidad sin resecar. El ácido salicílico afina los poros y ayuda a prevenir las imperfecciones.</p>
+      <dl>
+        <dt>Activos</dt><dd>Ácido salicílico</dd>
+        <dt>Piel</dt><dd>Con tendencia acneica</dd>
+        <dt>Formato</dt><dd>300 ml</dd>
+      </dl>
+      <footer>
+        <data value="24">24 €<small>IVA incluido · Envío gratis desde 35 €</small></data>
+        <p role="group" aria-label="Cantidad">
+          <button type="button" data-paso="-1" aria-label="Una unidad menos">&minus;</button>
+          <output>1</output>
+          <button type="button" data-paso="1" aria-label="Una unidad más">+</button>
+        </p>
+        <button type="button" data-anadir="espuma">Añadir a la bolsa</button>
+      </footer>
+      <ul aria-label="Ventajas">
+        <li><strong>24/48 h</strong>Envío rápido</li>
+        <li><strong>30 días</strong>Devolución gratis</li>
+        <li><strong>Seguro</strong>Pago cifrado</li>
+      </ul>
+      <details open>
+        <summary>Cómo se usa</summary>
+        <p>Mañana y noche, emulsiona una nuez de producto con agua tibia, masajea durante un minuto y aclara. Seca a toquecitos.</p>
+      </details>
+      <details>
+        <summary>Ingredientes clave</summary>
+        <p>Ácido salicílico (1 %), glicerina, ceramidas, niacinamida y tensioactivos suaves de origen vegetal.</p>
+      </details>
+      <details>
+        <summary>Envío y devoluciones</summary>
+        <p>Envío en 24–48 h laborables, gratis a partir de 35 €. Si no te convence, tienes 30 días para devolverlo sin coste.</p>
+      </details>
+    </article>
+
+    <article id="hidratante" hidden>
+      <p><b>06 / 06</b> Rostro · Día</p>
+      <h1>Crema hidratante <em>Gel-crema de uso diario</em></h1>
+      <p>Textura de gel-crema que hidrata, calma y prepara la piel para el maquillaje. En tarro de vidrio con tapa de bambú.</p>
+      <dl>
+        <dt>Activos</dt><dd>Ceramidas y aloe vera</dd>
+        <dt>Piel</dt><dd>Todo tipo de piel</dd>
+        <dt>Formato</dt><dd>50 ml</dd>
+      </dl>
+      <footer>
+        <data value="34">34 €<small>IVA incluido · Envío gratis desde 35 €</small></data>
+        <p role="group" aria-label="Cantidad">
+          <button type="button" data-paso="-1" aria-label="Una unidad menos">&minus;</button>
+          <output>1</output>
+          <button type="button" data-paso="1" aria-label="Una unidad más">+</button>
+        </p>
+        <button type="button" data-anadir="hidratante">Añadir a la bolsa</button>
+      </footer>
+      <ul aria-label="Ventajas">
+        <li><strong>24/48 h</strong>Envío rápido</li>
+        <li><strong>30 días</strong>Devolución gratis</li>
+        <li><strong>Seguro</strong>Pago cifrado</li>
+      </ul>
+      <details open>
+        <summary>Cómo se usa</summary>
+        <p>Mañana y noche, después de la limpieza, aplica una pequeña cantidad con las yemas de los dedos y masajea hasta que se absorba.</p>
+      </details>
+      <details>
+        <summary>Ingredientes clave</summary>
+        <p>Ceramidas, aloe vera ecológico, ácido hialurónico, escualano y vitamina E.</p>
+      </details>
+      <details>
+        <summary>Envío y devoluciones</summary>
+        <p>Envío en 24–48 h laborables, gratis a partir de 35 €. Si no te convence, tienes 30 días para devolverlo sin coste.</p>
+      </details>
+    </article>
+  </section>
+
+  <!-- 2. COMPLETA TU RUTINA -->
+  <section id="rutina">
+    <header>
+      <p>Combínalo</p>
+      <h2>Completa tu <em>rutina</em></h2>
+      <p>Fórmulas pensadas para usarse juntas: limpia, trata e hidrata en menos de cinco minutos.</p>
+    </header>
+    <ol>
+      <li hidden>
+        <h3><a href="producto.html?p=libre">Libre</a></h3>
+        <p>Crema corporal intensa con ácido hialurónico, urea y aceite de coco.</p>
+        <small>Cuerpo · 250 ml</small>
+        <figure><img src="img/libre.webp" alt="Libre, crema corporal TasmaT" loading="lazy"></figure>
+        <p><data value="29">29 €</data><button type="button" data-anadir="libre" aria-label="Añadir Libre a la bolsa">+</button></p>
+      </li>
+      <li>
+        <h3><a href="producto.html?p=retinol">Retinol 0.50</a></h3>
+        <p>Crema antiarrugas de noche con retinol estabilizado y vitamina C.</p>
+        <small>Rostro · 30 ml</small>
+        <figure><img src="img/retinol.webp" alt="Retinol 0.50, crema antiarrugas TasmaT" loading="lazy"></figure>
+        <p><data value="39">39 €</data><button type="button" data-anadir="retinol" aria-label="Añadir Retinol 0.50 a la bolsa">+</button></p>
+      </li>
+      <li>
+        <h3><a href="producto.html?p=iluminadora">Crema iluminadora</a></h3>
+        <p>Unifica el tono y aporta luz con extractos vegetales y manteca de karité.</p>
+        <small>Rostro · 100 ml</small>
+        <figure><img src="img/iluminadora.webp" alt="Crema iluminadora TasmaT en tubo verde" loading="lazy"></figure>
+        <p><data value="32">32 €</data><button type="button" data-anadir="iluminadora" aria-label="Añadir Crema iluminadora a la bolsa">+</button></p>
+      </li>
+      <li>
+        <h3><a href="producto.html?p=azufre">Crema de azufre</a></h3>
+        <p>Tratamiento purificante de noche para equilibrar la piel mixta y grasa.</p>
+        <small>Rostro · 30 ml</small>
+        <figure><img src="img/azufre.webp" alt="Crema de azufre TasmaT en frasco con dosificador" loading="lazy"></figure>
+        <p><data value="26">26 €</data><button type="button" data-anadir="azufre" aria-label="Añadir Crema de azufre a la bolsa">+</button></p>
+      </li>
+      <li hidden>
+        <h3><a href="producto.html?p=espuma">Espuma limpiadora</a></h3>
+        <p>Crema espumosa sin jabón con ácido salicílico. Limpia sin resecar.</p>
+        <small>Limpieza · 300 ml</small>
+        <figure><img src="img/espuma.webp" alt="Espuma limpiadora TasmaT" loading="lazy"></figure>
+        <p><data value="24">24 €</data><button type="button" data-anadir="espuma" aria-label="Añadir Espuma limpiadora a la bolsa">+</button></p>
+      </li>
+      <li hidden>
+        <h3><a href="producto.html?p=hidratante">Crema hidratante</a></h3>
+        <p>Gel-crema de uso diario con ceramidas y aloe vera, en tarro de vidrio.</p>
+        <small>Rostro · 50 ml</small>
+        <figure><img src="img/hidratante.webp" alt="Crema hidratante TasmaT en tarro con tapa de bambú" loading="lazy"></figure>
+        <p><data value="34">34 €</data><button type="button" data-anadir="hidratante" aria-label="Añadir Crema hidratante a la bolsa">+</button></p>
+      </li>
+    </ol>
+  </section>
+
+</main>
+
+<footer>
+  <section>
+    <a href="index.html">TasmaT</a>
+    <p>Cosmética consciente que une ciencia y naturaleza. Fórmulas limpias, envases reciclables y resultados que se notan.</p>
+  </section>
+  <nav aria-label="Tienda">
+    <h2>Tienda</h2>
+    <ul>
+      <li><a href="index.html#estanteria">Estantería</a></li>
+      <li><a href="producto.html">Producto en 3D</a></li>
+      <li><a href="pago.html">Finalizar compra</a></li>
+    </ul>
+  </nav>
+  <nav aria-label="Marca">
+    <h2>Marca</h2>
+    <ul>
+      <li><a href="index.html#ingredientes">Ingredientes</a></li>
+      <li><a href="index.html#club">Club TasmaT</a></li>
+      <li><a href="index.html#inicio">Nuestra historia</a></li>
+    </ul>
+  </nav>
+  <nav aria-label="Ayuda">
+    <h2>Ayuda</h2>
+    <ul>
+      <li><a href="producto.html">Envíos y devoluciones</a></li>
+      <li><a href="index.html#club">Contacto</a></li>
+      <li><a href="index.html#club">Instagram</a></li>
+    </ul>
+  </nav>
+  <p><small>© 2026 TasmaT. Todos los derechos reservados.</small><small>Plantilla premium de All Pixels</small></p>
+</footer>
+
+<dialog aria-labelledby="titulo-bolsa">
+  <header>
+    <h2 id="titulo-bolsa">Tu bolsa <output>0</output></h2>
+    <button type="button" aria-label="Cerrar la bolsa">&#x2715;</button>
+  </header>
+  <ul aria-label="Productos de la bolsa"></ul>
+  <p>Tu bolsa está vacía. <a href="index.html#estanteria">Ver la estantería</a></p>
+  <footer>
+    <p><span>Te faltan 35,00 € para el envío gratis</span><progress max="35" value="0" aria-label="Camino hacia el envío gratis"></progress></p>
+    <dl>
+      <dt>Subtotal</dt><dd>0,00 €</dd>
+      <dt>Descuento</dt><dd>0,00 €</dd>
+      <dt>Envío</dt><dd>Gratis</dd>
+      <dt>Total</dt><dd>0,00 €</dd>
+    </dl>
+    <small>IVA incluido · Devolución gratis durante 30 días</small>
+    <a href="pago.html">Pagar</a>
+    <button type="button">Seguir comprando</button>
+  </footer>
+</dialog>
+
+<aside aria-label="Aviso de la bolsa" aria-live="polite">
+  <figure><img src="img/libre.webp" alt=""></figure>
+  <p>Añadido a tu bolsa <strong>Libre</strong></p>
+  <button type="button">Ver bolsa</button>
+</aside>
+
+<script src="js/three.min.js"></script>
+<script src="js/modelos-3d.js"></script>
+<script src="js/visor-3d.js"></script>
+<script src="js/tienda.js"></script>
+<script>
+  /* Selector de cantidad de cada ficha */
+  document.querySelectorAll("#producto article footer > p").forEach((selector) => {
+    const salida = selector.querySelector("output");
+    selector.addEventListener("click", (e) => {
+      const boton = e.target.closest("button");
+      if (!boton) return;
+      salida.textContent = Math.min(10, Math.max(1, Number(salida.textContent) + Number(boton.dataset.paso)));
+    });
+  });
+
+  /* «Completa tu rutina»: tres sugerencias distintas del producto que se está viendo */
+  const sugerencias = [...document.querySelectorAll("#rutina li")];
+  function sugerir(id) {
+    const i = sugerencias.findIndex((li) => li.querySelector("[data-anadir]").dataset.anadir === id);
+    sugerencias.forEach((li, j) => (li.hidden = ![1, 2, 3].some((k) => (i + k) % sugerencias.length === j)));
+    document.querySelector("#rutina ol").scrollLeft = 0;   // en móvil la fila vuelve al principio
+  }
+  document.addEventListener("producto:cambio", (e) => sugerir(e.detail.id));
+  sugerir(document.querySelector("#producto > article:not([hidden])").id);
+</script>
+</body>
+</html>
